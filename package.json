@@ -1,4 +1,13 @@
 {
+  "name": "maranatha",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run dev --prefix maranatha/frontend",
+    "build": "npm run build --prefix maranatha/frontend",
+    "lint": "npm run lint --prefix maranatha/frontend",
+    "preview": "npm run preview --prefix maranatha/frontend"
+  },
   "dependencies": {
     "@supabase/supabase-js": "^2.107.0"
   }
