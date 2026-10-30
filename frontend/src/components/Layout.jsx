@@ -4,6 +4,10 @@ import { useAuth } from '../context/AuthContext';
 import {
   LayoutDashboard,
   Users,
+  Baby,
+  ScanLine,
+  DoorOpen,
+  ChefHat,
   CalendarDays,
   Settings,
   LogOut,
@@ -18,7 +22,11 @@ import { toast } from 'sonner';
 
 const navItems = [
   { to: '/panel', label: 'Panel', icon: LayoutDashboard },
+  { to: '/checkin', label: 'Check-in', icon: ScanLine },
   { to: '/servicio', label: 'Servicio Dominical', icon: CalendarDays },
+  { to: '/ninos', label: 'Niños', icon: Baby },
+  { to: '/salones', label: 'Salones', icon: DoorOpen },
+  { to: '/cocina', label: 'Cocina', icon: ChefHat },
   { to: '/servidores', label: 'Servidores', icon: Users },
   { to: '/estadisticas', label: 'Estadísticas', icon: TrendingUp },
   { to: '/configuracion', label: 'Configuración', icon: Settings },
@@ -92,6 +100,8 @@ export const Layout = ({ children }) => {
               style={{ display: 'none' }}
               onClick={() => setSidebarOpen(!sidebarOpen)}
               id="mobile-menu-btn"
+              aria-label={sidebarOpen ? 'Cerrar menú' : 'Abrir menú'}
+              aria-expanded={sidebarOpen}
             >
               {sidebarOpen ? <X /> : <Menu />}
             </button>
@@ -103,15 +113,15 @@ export const Layout = ({ children }) => {
 
             <div className="topbar-search">
               <Search style={{ width: '1rem', height: '1rem', color: '#94a3b8' }} />
-              <input type="text" placeholder="Búsqueda global..." />
+              <input type="text" placeholder="Búsqueda global..." aria-label="Búsqueda global" />
             </div>
           </div>
 
           <div className="topbar-actions">
-            <button className="topbar-icon-btn">
+            <button className="topbar-icon-btn" aria-label="Notificaciones">
               <Bell style={{ width: '1rem', height: '1rem' }} />
             </button>
-            <button className="topbar-icon-btn">
+            <button className="topbar-icon-btn" aria-label="Ayuda">
               <HelpCircle style={{ width: '1rem', height: '1rem' }} />
             </button>
 

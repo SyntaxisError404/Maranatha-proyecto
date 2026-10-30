@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   CalendarDays, 
   Save, 
@@ -14,6 +14,12 @@ import { AsistenciaSeccion } from '../components/AsistenciaSeccion';
 import { AsistenciaLogistica } from '../components/AsistenciaLogistica';
 import { EstadisticasServicio } from '../components/EstadisticasServicio';
 import { salonesConfig } from '../data/mockData';
+import { useAsistencia } from '../hooks/useAsistencia';
+
+const OTRAS_AREAS_DEFAULT = {
+  Ujieres: 0, Seguridad: 0, Protocolo: 0, Sonido: 0,
+  Alabanza: 0, Teatro: 0, 'Semillitas ESP': 0, TV: 0
+};
 
 export const ServicioDominical = () => {
   const [activeTab, setActiveTab] = useState('maternal');
@@ -28,10 +34,7 @@ export const ServicioDominical = () => {
   const [asistenciaLogistica, setAsistenciaLogistica] = useState([]);
   
   // Otras Areas: solo totales { area, ujieres, seguridad, protocolo, etc }
-  const [otrasAreas, setOtrasAreas] = useState({
-    Ujieres: 0, Seguridad: 0, Protocolo: 0, Sonido: 0, 
-    Alabanza: 0, Teatro: 0, 'Semillitas ESP': 0, TV: 0
-  });
+  const [otrasAreas, setOtrasAreas] = useState(OTRAS_AREAS_DEFAULT);
 
   // Conteo Niños: { salon, hembras, varones }
   const [conteoMaternal, setConteoMaternal] = useState([]);
@@ -47,10 +50,60 @@ export const ServicioDominical = () => {
   // Salones Cerrados (lista de IDs)
   const [salonesCerrados, setSalonesCerrados] = useState([]);
 
-  const handleSave = () => {
-    setGuardado(true);
-    toast.success('Servicio guardado exitosamente');
-    // En una app real, aquí enviaríamos todo el estado a Supabase
+  // Hook de asistencia: persistencia en Supabase (o modo demo si no está configurado)
+  const { guardarServicio, cargarServicio, loading: guardando, isConfigured } = useAsistencia(fecha);
+
+  // Reúne todo el estado del servicio en un solo objeto
+  const construirEstado = () => ({
+    asistenciaMaternal, conteoMaternal, lideresMaternal,
+    asistenciaInfantil, conteoInfantil, lideresInfantil,
+    asistenciaPrejuvenil, conteoPrejuvenil, lideresPrejuvenil,
+    asistenciaLogistica, lideresLogistica,
+    otrasAreas, salonesCerrados
+  });
+
+  // Cargar el servicio guardado al cambiar la fecha (solo si hay BD)
+  useEffect(() => {
+    if (!isConfigured) return;
+    let cancelado = false;
+
+    (async () => {
+      const estado = await cargarServicio(fecha);
+      if (cancelado) return;
+
+      // Reiniciar al estado del servicio cargado (o vacío si no existe)
+      setAsistenciaMaternal(estado?.asistenciaMaternal || []);
+      setConteoMaternal(estado?.conteoMaternal || []);
+      setLideresMaternal(estado?.lideresMaternal || {});
+      setAsistenciaInfantil(estado?.asistenciaInfantil || []);
+      setConteoInfantil(estado?.conteoInfantil || []);
+      setLideresInfantil(estado?.lideresInfantil || {});
+      setAsistenciaPrejuvenil(estado?.asistenciaPrejuvenil || []);
+      setConteoPrejuvenil(estado?.conteoPrejuvenil || []);
+      setLideresPrejuvenil(estado?.lideresPrejuvenil || {});
+      setAsistenciaLogistica(estado?.asistenciaLogistica || []);
+      setLideresLogistica(estado?.lideresLogistica || { realizado_por: '' });
+      setOtrasAreas({ ...OTRAS_AREAS_DEFAULT, ...(estado?.otrasAreas || {}) });
+      setSalonesCerrados(estado?.salonesCerrados || []);
+      setGuardado(Boolean(estado));
+    })();
+
+    return () => { cancelado = true; };
+  }, [fecha, isConfigured, cargarServicio]);
+
+  const handleSave = async () => {
+    if (!isConfigured) {
+      setGuardado(true);
+      toast.success('Servicio guardado (modo demo, sin base de datos).');
+      return;
+    }
+    const { error } = await guardarServicio(fecha, construirEstado());
+    if (error) {
+      toast.error('Error al guardar: ' + (error.message || 'intenta de nuevo.'));
+    } else {
+      setGuardado(true);
+      toast.success('Servicio guardado exitosamente');
+    }
   };
 
   const tabs = [
@@ -86,9 +139,9 @@ export const ServicioDominical = () => {
               style={{ paddingLeft: '2.5rem', width: '180px' }}
             />
           </div>
-          <button className="maranatha-btn-primary" onClick={handleSave}>
+          <button className="maranatha-btn-primary" onClick={handleSave} disabled={guardando}>
             <Save style={{ width: '1rem', height: '1rem' }} />
-            GUARDAR REGISTRO
+            {guardando ? 'GUARDANDO...' : 'GUARDAR REGISTRO'}
           </button>
         </div>
       </div>

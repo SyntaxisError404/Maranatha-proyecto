@@ -1,12 +1,13 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LogIn, Sparkles, AlertCircle, Heart } from 'lucide-react';
+import { LogIn, Sparkles, AlertCircle, Heart, Eye, EyeOff } from 'lucide-react';
 
 export const Login = () => {
   const { login, setMockUser } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
@@ -82,6 +83,8 @@ export const Login = () => {
                 id="email"
                 type="email"
                 required
+                autoComplete="email"
+                inputMode="email"
                 className="maranatha-input"
                 placeholder="nombre@ejemplo.com"
                 value={email}
@@ -95,15 +98,26 @@ export const Login = () => {
                   Contraseña
                 </label>
               </div>
-              <input
-                id="password"
-                type="password"
-                required
-                className="maranatha-input"
-                placeholder="••••••••"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
+              <div className="relative">
+                <input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  autoComplete="current-password"
+                  className="maranatha-input pr-11"
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             <button
