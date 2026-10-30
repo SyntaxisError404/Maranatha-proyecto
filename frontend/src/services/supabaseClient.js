@@ -3,6 +3,10 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// true solo si ambas variables de entorno están presentes. Los hooks lo usan
+// para evitar llamadas de red en modo demo/offline y caer a datos simulados.
+export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseAnonKey);
+
 if (!supabaseUrl || !supabaseAnonKey) {
   console.warn(
     'Las variables de entorno de Supabase (VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY) no están configuradas. ' +

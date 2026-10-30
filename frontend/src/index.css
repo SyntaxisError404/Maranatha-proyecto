@@ -13,10 +13,17 @@
   --font-display: 'Outfit', 'Inter', system-ui, sans-serif;
 }
 
+html {
+  scroll-behavior: smooth;
+}
+
 body {
   font-family: var(--font-sans);
   background-color: var(--color-maranatha-bg);
   color: #1e293b;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -690,4 +697,60 @@ h1, h2, h3, h4, h5, h6 {
 
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
+}
+
+/* Scrollbar en Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+/* ===== ACCESIBILIDAD: foco visible para navegación con teclado ===== */
+.maranatha-btn-primary:focus-visible,
+.maranatha-btn-gold:focus-visible,
+.maranatha-btn-success:focus-visible,
+.maranatha-btn-danger:focus-visible,
+.topbar-icon-btn:focus-visible,
+.topbar-profile:focus-visible,
+.action-btn:focus-visible,
+.pagination-btn:focus-visible,
+.maranatha-input:focus-visible,
+.maranatha-select:focus-visible {
+  outline: 2px solid var(--color-maranatha-blue);
+  outline-offset: 2px;
+}
+
+/* En la barra lateral oscura, el foco se ve mejor en azul claro */
+.sidebar-link:focus-visible {
+  outline: 2px solid #93c5fd;
+  outline-offset: 2px;
+}
+
+/* ===== OBJETIVOS TÁCTILES MÁS GRANDES EN MÓVIL (mín. ~44px) ===== */
+@media (max-width: 768px) {
+  .topbar-icon-btn {
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+
+  .action-btn {
+    width: 2.5rem;
+    height: 2.5rem;
+  }
+
+  .sidebar-link {
+    padding: 0.875rem 1rem;
+  }
+}
+
+/* ===== RESPETAR "REDUCIR MOVIMIENTO" (accesibilidad) ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
