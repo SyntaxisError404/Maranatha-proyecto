@@ -6,9 +6,9 @@ import { formatFechaLarga, formatNumero } from '../utils/formatters';
 export const Estadisticas = () => {
   // Datos de ejemplo de domingos anteriores (se sustituirán por datos de Supabase)
   const domingosAnteriores = [
-    { id: 1, fecha: '2026-06-08', asistencia: 345 },
-    { id: 2, fecha: '2026-06-01', asistencia: 312 },
-    { id: 3, fecha: '2026-05-25', asistencia: 328 },
+    { id: 1, fecha: '2026-10-25', asistencia: 345 },
+    { id: 2, fecha: '2026-10-18', asistencia: 312 },
+    { id: 3, fecha: '2026-10-11', asistencia: 328 },
   ];
 
   const promedio = Math.round(
