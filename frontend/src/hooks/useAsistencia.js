@@ -69,6 +69,37 @@ export const useAsistencia = (fechaInicial = toISODate()) => {
     }
   }, [fecha, estado]);
 
+  // Si Supabase está configurado, intentar cargar un servicio ya guardado
+  // para esta fecha (el servidor gana sobre el borrador local).
+  useEffect(() => {
+    if (!isSupabaseConfigured) return;
+    let activo = true;
+    (async () => {
+      try {
+        const { data: servicio } = await supabase
+          .from('servicios')
+          .select('id')
+          .eq('fecha', fecha)
+          .maybeSingle();
+        if (!servicio || !activo) return;
+        const { data: detalle } = await supabase
+          .from('servicio_detalles')
+          .select('data')
+          .eq('servicio_id', servicio.id)
+          .maybeSingle();
+        if (detalle?.data && activo) {
+          setEstado({ ...estadoInicial(), ...detalle.data });
+          setGuardado(true);
+        }
+      } catch (error) {
+        console.error('No se pudo cargar el servicio desde Supabase:', error);
+      }
+    })();
+    return () => {
+      activo = false;
+    };
+  }, [fecha]);
+
   // Crea un setter individual por clave que además invalida el estado "guardado".
   const makeSetter = useCallback(
     (clave) => (valorOActualizador) => {

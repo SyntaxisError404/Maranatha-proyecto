@@ -1,15 +1,33 @@
-import React from 'react';
-import { BarChart2, Calendar, Eye, Users } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { BarChart2, Calendar, Eye, Users, HardDrive } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatFechaLarga, formatNumero } from '../utils/formatters';
+import { serviciosService } from '../services/serviciosService';
+import { SkeletonTable } from '../components/ui/Skeleton';
 
 export const Estadisticas = () => {
-  // Datos de ejemplo de domingos anteriores (se sustituirán por datos de Supabase)
-  const domingosAnteriores = [
-    { id: 1, fecha: '2026-10-25', asistencia: 345 },
-    { id: 2, fecha: '2026-10-18', asistencia: 312 },
-    { id: 3, fecha: '2026-10-11', asistencia: 328 },
-  ];
+  const [domingosAnteriores, setDomingosAnteriores] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [demo, setDemo] = useState(false);
+
+  useEffect(() => {
+    let activo = true;
+    serviciosService
+      .fetchHistorial()
+      .then((res) => {
+        if (!activo) return;
+        setDomingosAnteriores(res.data);
+        setDemo(res.demo);
+      })
+      .catch((e) => {
+        console.error('Error al cargar el historial:', e);
+        if (activo) toast.error('No se pudo cargar el historial.');
+      })
+      .finally(() => activo && setLoading(false));
+    return () => {
+      activo = false;
+    };
+  }, []);
 
   const promedio = Math.round(
     domingosAnteriores.reduce((acc, d) => acc + d.asistencia, 0) /
@@ -33,6 +51,15 @@ export const Estadisticas = () => {
             Consulta los registros de asistencia de domingos anteriores.
           </p>
         </div>
+        {demo && !loading && (
+          <span
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full"
+            title="Datos de ejemplo. Conecta Supabase para ver el historial real."
+          >
+            <HardDrive className="h-3.5 w-3.5" />
+            Datos de ejemplo
+          </span>
+        )}
       </div>
 
       {/* Resumen */}
@@ -63,6 +90,9 @@ export const Estadisticas = () => {
       </div>
 
       {/* Tabla */}
+      {loading ? (
+        <SkeletonTable rows={3} cols={3} />
+      ) : (
       <div className="maranatha-card overflow-hidden" style={{ padding: 0 }}>
         <div className="overflow-x-auto">
           <table className="admin-table w-full">
@@ -108,6 +138,7 @@ export const Estadisticas = () => {
           </table>
         </div>
       </div>
+      )}
     </div>
   );
 };

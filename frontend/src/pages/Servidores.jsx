@@ -1,11 +1,12 @@
 import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
-  Search, Plus, Edit2, Trash2, X, UserCog, Filter, Shield, Users as UsersIcon,
+  Search, Plus, Edit2, Trash2, X, UserCog, Filter, Shield, Users as UsersIcon, HardDrive,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { mockServidores } from '../data/mockData';
 import { getIniciales, formatNombre } from '../utils/formatters';
+import { useServidores } from '../hooks/useServidores';
+import { SkeletonTable } from '../components/ui/Skeleton';
 
 const GRUPOS = [
   'Todos',
@@ -49,7 +50,7 @@ const getRoleColor = (role) => {
 };
 
 export const Servidores = () => {
-  const [servidores, setServidores] = useState(mockServidores || []);
+  const { servidores, loading, modoLocal, add, update, remove } = useServidores();
   const [searchTerm, setSearchTerm] = useState('');
   const [groupFilter, setGroupFilter] = useState('Todos');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -85,7 +86,9 @@ export const Servidores = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.nombre.trim()) {
       toast.error('El nombre es requerido');
@@ -93,48 +96,35 @@ export const Servidores = () => {
     }
 
     const limpio = { ...formData, nombre: formatNombre(formData.nombre) };
+    setSaving(true);
+    const res = currentServidor
+      ? await update(currentServidor.id, limpio)
+      : await add(limpio);
+    setSaving(false);
 
-    if (currentServidor) {
-      setServidores((prev) =>
-        prev.map((s) => (s.id === currentServidor.id ? { ...s, ...limpio } : s))
-      );
-      toast.success('Servidor actualizado correctamente');
+    if (res.ok) {
+      toast.success(currentServidor ? 'Servidor actualizado correctamente' : 'Servidor agregado correctamente');
+      handleCloseModal();
     } else {
-      const newId = String(
-        servidores.reduce((max, s) => Math.max(max, Number(s.id) || 0), 0) + 1
-      );
-      setServidores((prev) => [...prev, { id: newId, funcionDefault: limpio.funcion, ...limpio }]);
-      toast.success('Servidor agregado correctamente');
-    }
-    handleCloseModal();
-  };
-
-  const handleDelete = (id) => {
-    if (window.confirm('¿Está seguro de eliminar este servidor?')) {
-      setServidores((prev) => prev.filter((s) => s.id !== id));
-      toast.success('Servidor eliminado correctamente');
+      toast.error('No se pudo guardar. Intenta de nuevo.');
     }
   };
 
-  const normalizados = useMemo(
-    () =>
-      servidores.map((s) => ({
-        ...s,
-        nombre: s.nombre || '',
-        grupo: s.grupo || '',
-        funcion: s.funcion || s.funcionDefault || 'Servidor',
-      })),
-    [servidores]
-  );
+  const handleDelete = async (id) => {
+    if (!window.confirm('¿Está seguro de eliminar este servidor?')) return;
+    const res = await remove(id);
+    if (res.ok) toast.success('Servidor eliminado correctamente');
+    else toast.error('No se pudo eliminar. Intenta de nuevo.');
+  };
 
   const filtrados = useMemo(() => {
     const term = searchTerm.toLowerCase().trim();
-    return normalizados.filter((s) => {
-      const matchSearch = s.nombre.toLowerCase().includes(term);
+    return servidores.filter((s) => {
+      const matchSearch = (s.nombre || '').toLowerCase().includes(term);
       const matchGroup = groupFilter === 'Todos' || s.grupo === groupFilter;
       return matchSearch && matchGroup;
     });
-  }, [normalizados, searchTerm, groupFilter]);
+  }, [servidores, searchTerm, groupFilter]);
 
   return (
     <div className="space-y-6">
@@ -185,13 +175,27 @@ export const Servidores = () => {
       </div>
 
       {/* Contador */}
-      <p className="text-sm text-slate-500 font-medium flex items-center gap-2">
-        <UsersIcon className="h-4 w-4" />
-        {filtrados.length} servidor{filtrados.length === 1 ? '' : 'es'}
-        {groupFilter !== 'Todos' && ` en ${groupFilter}`}
-      </p>
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <p className="text-sm text-slate-500 font-medium flex items-center gap-2">
+          <UsersIcon className="h-4 w-4" />
+          {filtrados.length} servidor{filtrados.length === 1 ? '' : 'es'}
+          {groupFilter !== 'Todos' && ` en ${groupFilter}`}
+        </p>
+        {modoLocal && (
+          <span
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-amber-700 bg-amber-50 border border-amber-200 px-2.5 py-1 rounded-full"
+            title="Sin conexión a Supabase: los cambios se guardan en este dispositivo."
+          >
+            <HardDrive className="h-3.5 w-3.5" />
+            Modo local
+          </span>
+        )}
+      </div>
 
       {/* Tabla */}
+      {loading ? (
+        <SkeletonTable rows={6} cols={4} />
+      ) : (
       <div className="maranatha-card overflow-hidden" style={{ padding: 0 }}>
         <div className="overflow-x-auto">
           <table className="admin-table">
@@ -266,6 +270,7 @@ export const Servidores = () => {
           </table>
         </div>
       </div>
+      )}
 
       {/* Modal */}
       <AnimatePresence>
@@ -346,8 +351,8 @@ export const Servidores = () => {
                   >
                     Cancelar
                   </button>
-                  <button type="submit" className="flex-1 maranatha-btn-primary">
-                    {currentServidor ? 'Guardar Cambios' : 'Agregar'}
+                  <button type="submit" className="flex-1 maranatha-btn-primary" disabled={saving}>
+                    {saving ? 'Guardando...' : currentServidor ? 'Guardar Cambios' : 'Agregar'}
                   </button>
                 </div>
               </form>
