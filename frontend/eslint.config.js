@@ -30,4 +30,20 @@ export default [
       ],
     },
   },
+  {
+    // Globals de Vitest en archivos de prueba
+    files: ['**/*.{test,spec}.{js,jsx}', 'src/test/**'],
+    languageOptions: {
+      globals: {
+        describe: 'readonly',
+        it: 'readonly',
+        expect: 'readonly',
+        vi: 'readonly',
+        beforeEach: 'readonly',
+        afterEach: 'readonly',
+        beforeAll: 'readonly',
+        afterAll: 'readonly',
+      },
+    },
+  },
 ];

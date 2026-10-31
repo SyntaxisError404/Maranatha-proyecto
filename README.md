@@ -6,10 +6,11 @@ Sistema de gestión, control de asistencia e integración escolar para la **Igle
 
 ## Stack Tecnológico
 
-- **Frontend:** React 19 + Vite 6
+- **Frontend:** React 19 + Vite 6 (PWA instalable, con carga diferida de rutas)
 - **Estilos:** TailwindCSS v4 (con tema de marca en `@theme`)
 - **Ruteo:** React Router (HashRouter, compatible con GitHub Pages)
 - **Backend / BD:** Supabase (PostgreSQL)
+- **Pruebas:** Vitest + Testing Library
 - **Extras:** `framer-motion`, `lucide-react`, `html5-qrcode`, `sonner`
 
 ---
@@ -51,6 +52,8 @@ npm run dev
 | `npm run build` | Compila para producción en `dist/` |
 | `npm run preview` | Sirve el build de producción |
 | `npm run lint` | Ejecuta ESLint sobre el código |
+| `npm test` | Ejecuta las pruebas con Vitest |
+| `npm run test:watch` | Pruebas en modo observación |
 
 > También puedes usar los mismos scripts desde la raíz del repositorio (`npm run dev`, `npm run build`, etc.), que delegan al frontend.
 
@@ -108,6 +111,7 @@ frontend/src/
 | `/login` | Inicio de sesión |
 | `/panel` | Dashboard |
 | `/servicio` | Servicio Dominical (registro) |
+| `/checkin` | Check-in de servidores por QR |
 | `/servidores` | Gestión de servidores |
 | `/salones` | Distribución de salones |
 | `/cocina` | Cocina y logística |
@@ -130,6 +134,15 @@ Para mantener la consistencia estética (todo el sistema usa un **tema claro**):
 
 ---
 
+## Pruebas e Integración Continua
+
+- **Pruebas unitarias/componentes** con Vitest + Testing Library (`npm test`), en archivos `*.test.js(x)` junto al código que prueban.
+- **CI** ([`.github/workflows/ci.yml`](.github/workflows/ci.yml)): en cada push y pull request ejecuta `lint`, `test` y `build`.
+
+---
+
 ## Despliegue
 
 El workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) publica automáticamente en **GitHub Pages** al hacer push a `main`/`master`. Define los *secrets* `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en la configuración del repositorio para que el build de producción se conecte a Supabase.
+
+La app es una **PWA instalable** (`vite-plugin-pwa`): se puede "Agregar a la pantalla de inicio" en el teléfono y los recursos quedan cacheados para uso con conexión intermitente.
