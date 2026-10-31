@@ -1,119 +1,97 @@
 import React, { useState } from 'react';
-import { 
-  CalendarDays, 
-  Save, 
-  Baby, 
-  Users, 
-  UserCheck, 
-  ClipboardList, 
-  BarChart3,
-  CheckCircle2
+import {
+  CalendarDays, Save, Baby, Users, UserCheck, ClipboardList, BarChart3, CheckCircle2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { AsistenciaSeccion } from '../components/AsistenciaSeccion';
 import { AsistenciaLogistica } from '../components/AsistenciaLogistica';
 import { EstadisticasServicio } from '../components/EstadisticasServicio';
 import { salonesConfig } from '../data/mockData';
+import { useAsistencia } from '../hooks/useAsistencia';
+
+const TABS = [
+  { id: 'maternal', label: 'Maternal', icon: Baby },
+  { id: 'infantil', label: 'Infantil', icon: Users },
+  { id: 'prejuvenil', label: 'Prejuvenil', icon: UserCheck },
+  { id: 'logistica', label: 'Logística', icon: ClipboardList },
+  { id: 'estadisticas', label: 'Estadísticas', icon: BarChart3 },
+];
 
 export const ServicioDominical = () => {
   const [activeTab, setActiveTab] = useState('maternal');
-  const [fecha, setFecha] = useState(new Date().toISOString().split('T')[0]);
-  const [guardado, setGuardado] = useState(false);
+  const {
+    fecha, setFecha, estado, setters, guardando, guardado, guardarServicio,
+  } = useAsistencia();
 
-  // --- ESTADO GLOBAL DEL SERVICIO ---
-  // Asistencias: { servidorId, salon/equipo, rol (M/A/C) o asistio (A/I) }
-  const [asistenciaMaternal, setAsistenciaMaternal] = useState([]);
-  const [asistenciaInfantil, setAsistenciaInfantil] = useState([]);
-  const [asistenciaPrejuvenil, setAsistenciaPrejuvenil] = useState([]);
-  const [asistenciaLogistica, setAsistenciaLogistica] = useState([]);
-  
-  // Otras Areas: solo totales { area, ujieres, seguridad, protocolo, etc }
-  const [otrasAreas, setOtrasAreas] = useState({
-    Ujieres: 0, Seguridad: 0, Protocolo: 0, Sonido: 0, 
-    Alabanza: 0, Teatro: 0, 'Semillitas ESP': 0, TV: 0
-  });
-
-  // Conteo Niños: { salon, hembras, varones }
-  const [conteoMaternal, setConteoMaternal] = useState([]);
-  const [conteoInfantil, setConteoInfantil] = useState([]);
-  const [conteoPrejuvenil, setConteoPrejuvenil] = useState([]);
-
-  // Lideres: { capitan, mano_derecha, cesta_amor }
-  const [lideresMaternal, setLideresMaternal] = useState({});
-  const [lideresInfantil, setLideresInfantil] = useState({});
-  const [lideresPrejuvenil, setLideresPrejuvenil] = useState({});
-  const [lideresLogistica, setLideresLogistica] = useState({ realizado_por: '' });
-
-  // Salones Cerrados (lista de IDs)
-  const [salonesCerrados, setSalonesCerrados] = useState([]);
-
-  const handleSave = () => {
-    setGuardado(true);
-    toast.success('Servicio guardado exitosamente');
-    // En una app real, aquí enviaríamos todo el estado a Supabase
+  const handleSave = async () => {
+    const res = await guardarServicio();
+    if (res.ok) {
+      toast.success(
+        res.offline
+          ? 'Servicio guardado localmente (modo demo/offline).'
+          : 'Servicio guardado exitosamente en la nube.'
+      );
+    } else {
+      toast.error('No se pudo guardar el servicio. Tus datos quedaron en el borrador local.');
+    }
   };
-
-  const tabs = [
-    { id: 'maternal', label: 'Maternal', icon: Baby },
-    { id: 'infantil', label: 'Infantil', icon: Users },
-    { id: 'prejuvenil', label: 'Prejuvenil', icon: UserCheck },
-    { id: 'logistica', label: 'Logística', icon: ClipboardList },
-    { id: 'estadisticas', label: 'Estadísticas', icon: BarChart3 },
-  ];
 
   return (
     <div>
       {/* Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
+      <div className="page-header">
         <div>
-          <h1 style={{ fontSize: '1.75rem', fontWeight: 800, color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+          <h1 className="page-title">
             Servicio Dominical
-            {guardado && <span style={{ fontSize: '0.7rem', backgroundColor: '#dcfce7', color: '#166534', padding: '0.25rem 0.5rem', borderRadius: '9999px', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}><CheckCircle2 style={{ width: '0.8rem', height: '0.8rem' }}/> GUARDADO</span>}
+            {guardado && (
+              <span
+                style={{
+                  fontSize: '0.7rem', backgroundColor: '#dcfce7', color: '#166534',
+                  padding: '0.25rem 0.5rem', borderRadius: '9999px',
+                  display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+                }}
+              >
+                <CheckCircle2 style={{ width: '0.8rem', height: '0.8rem' }} /> GUARDADO
+              </span>
+            )}
           </h1>
-          <p style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.25rem', fontWeight: 500 }}>
+          <p className="page-subtitle">
             Registra la asistencia de servidores y conteo de niños.
           </p>
         </div>
-        
-        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center' }}>
+
+        <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', flexWrap: 'wrap' }}>
           <div style={{ position: 'relative' }}>
             <CalendarDays style={{ position: 'absolute', left: '0.75rem', top: '50%', transform: 'translateY(-50%)', width: '1rem', height: '1rem', color: '#64748b' }} />
-            <input 
-              type="date" 
-              className="maranatha-input" 
+            <input
+              type="date"
+              className="maranatha-input"
               value={fecha}
-              onChange={(e) => {setFecha(e.target.value); setGuardado(false);}}
+              onChange={(e) => setFecha(e.target.value)}
               style={{ paddingLeft: '2.5rem', width: '180px' }}
             />
           </div>
-          <button className="maranatha-btn-primary" onClick={handleSave}>
+          <button className="maranatha-btn-primary" onClick={handleSave} disabled={guardando}>
             <Save style={{ width: '1rem', height: '1rem' }} />
-            GUARDAR REGISTRO
+            {guardando ? 'GUARDANDO...' : 'GUARDAR REGISTRO'}
           </button>
         </div>
       </div>
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', overflowX: 'auto', paddingBottom: '0.5rem' }}>
-        {tabs.map(tab => (
+        {TABS.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.75rem 1.25rem',
-              borderRadius: '0.75rem',
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: '0.875rem',
-              transition: 'all 0.2s ease',
-              whiteSpace: 'nowrap',
+              display: 'flex', alignItems: 'center', gap: '0.5rem',
+              padding: '0.75rem 1.25rem', borderRadius: '0.75rem', cursor: 'pointer',
+              fontWeight: 600, fontSize: '0.875rem', transition: 'all 0.2s ease', whiteSpace: 'nowrap',
               backgroundColor: activeTab === tab.id ? '#0a4693' : '#ffffff',
               color: activeTab === tab.id ? '#ffffff' : '#64748b',
               boxShadow: activeTab === tab.id ? '0 4px 12px rgba(10, 70, 147, 0.2)' : '0 1px 2px rgba(0,0,0,0.05)',
-              border: activeTab !== tab.id ? '1px solid #e2e8f0' : 'none'
+              border: activeTab !== tab.id ? '1px solid #e2e8f0' : 'none',
             }}
           >
             <tab.icon style={{ width: '1.1rem', height: '1.1rem' }} />
@@ -122,21 +100,21 @@ export const ServicioDominical = () => {
         ))}
       </div>
 
-      {/* Content */}
+      {/* Contenido */}
       <div style={{ animation: 'fadeIn 0.3s ease' }}>
         {activeTab === 'maternal' && (
           <AsistenciaSeccion
             titulo="Asistencia Servidores Maranatha Kids 'Maternal'"
             grupoFiltro="Maternal"
             salonesConfig={salonesConfig.Maternal}
-            asistencia={asistenciaMaternal}
-            setAsistencia={setAsistenciaMaternal}
-            conteo={conteoMaternal}
-            setConteo={setConteoMaternal}
-            lideres={lideresMaternal}
-            setLideres={setLideresMaternal}
-            salonesCerrados={salonesCerrados}
-            setSalonesCerrados={setSalonesCerrados}
+            asistencia={estado.asistenciaMaternal}
+            setAsistencia={setters.setAsistenciaMaternal}
+            conteo={estado.conteoMaternal}
+            setConteo={setters.setConteoMaternal}
+            lideres={estado.lideresMaternal}
+            setLideres={setters.setLideresMaternal}
+            salonesCerrados={estado.salonesCerrados}
+            setSalonesCerrados={setters.setSalonesCerrados}
           />
         )}
 
@@ -145,14 +123,14 @@ export const ServicioDominical = () => {
             titulo="Asistencia Servidores Maranatha Kids 'Infantil'"
             grupoFiltro="Infantil"
             salonesConfig={salonesConfig.Infantil}
-            asistencia={asistenciaInfantil}
-            setAsistencia={setAsistenciaInfantil}
-            conteo={conteoInfantil}
-            setConteo={setConteoInfantil}
-            lideres={lideresInfantil}
-            setLideres={setLideresInfantil}
-            salonesCerrados={salonesCerrados}
-            setSalonesCerrados={setSalonesCerrados}
+            asistencia={estado.asistenciaInfantil}
+            setAsistencia={setters.setAsistenciaInfantil}
+            conteo={estado.conteoInfantil}
+            setConteo={setters.setConteoInfantil}
+            lideres={estado.lideresInfantil}
+            setLideres={setters.setLideresInfantil}
+            salonesCerrados={estado.salonesCerrados}
+            setSalonesCerrados={setters.setSalonesCerrados}
           />
         )}
 
@@ -161,23 +139,23 @@ export const ServicioDominical = () => {
             titulo="Asistencia Servidores Maranatha Kids 'Prejuvenil'"
             grupoFiltro="Prejuvenil"
             salonesConfig={salonesConfig.Prejuvenil}
-            asistencia={asistenciaPrejuvenil}
-            setAsistencia={setAsistenciaPrejuvenil}
-            conteo={conteoPrejuvenil}
-            setConteo={setConteoPrejuvenil}
-            lideres={lideresPrejuvenil}
-            setLideres={setLideresPrejuvenil}
-            salonesCerrados={salonesCerrados}
-            setSalonesCerrados={setSalonesCerrados}
+            asistencia={estado.asistenciaPrejuvenil}
+            setAsistencia={setters.setAsistenciaPrejuvenil}
+            conteo={estado.conteoPrejuvenil}
+            setConteo={setters.setConteoPrejuvenil}
+            lideres={estado.lideresPrejuvenil}
+            setLideres={setters.setLideresPrejuvenil}
+            salonesCerrados={estado.salonesCerrados}
+            setSalonesCerrados={setters.setSalonesCerrados}
           />
         )}
 
         {activeTab === 'logistica' && (
           <AsistenciaLogistica
-            asistencia={asistenciaLogistica}
-            setAsistencia={setAsistenciaLogistica}
-            lideres={lideresLogistica}
-            setLideres={setLideresLogistica}
+            asistencia={estado.asistenciaLogistica}
+            setAsistencia={setters.setAsistenciaLogistica}
+            lideres={estado.lideresLogistica}
+            setLideres={setters.setLideresLogistica}
           />
         )}
 
@@ -185,12 +163,20 @@ export const ServicioDominical = () => {
           <EstadisticasServicio
             fecha={fecha}
             estado={{
-              asistenciaMaternal, conteoMaternal, lideresMaternal,
-              asistenciaInfantil, conteoInfantil, lideresInfantil,
-              asistenciaPrejuvenil, conteoPrejuvenil, lideresPrejuvenil,
-              asistenciaLogistica, lideresLogistica,
-              otrasAreas, setOtrasAreas,
-              salonesCerrados
+              asistenciaMaternal: estado.asistenciaMaternal,
+              conteoMaternal: estado.conteoMaternal,
+              lideresMaternal: estado.lideresMaternal,
+              asistenciaInfantil: estado.asistenciaInfantil,
+              conteoInfantil: estado.conteoInfantil,
+              lideresInfantil: estado.lideresInfantil,
+              asistenciaPrejuvenil: estado.asistenciaPrejuvenil,
+              conteoPrejuvenil: estado.conteoPrejuvenil,
+              lideresPrejuvenil: estado.lideresPrejuvenil,
+              asistenciaLogistica: estado.asistenciaLogistica,
+              lideresLogistica: estado.lideresLogistica,
+              otrasAreas: estado.otrasAreas,
+              setOtrasAreas: setters.setOtrasAreas,
+              salonesCerrados: estado.salonesCerrados,
             }}
           />
         )}

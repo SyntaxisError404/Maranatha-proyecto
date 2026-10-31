@@ -12,7 +12,9 @@ import {
   Bell,
   HelpCircle,
   Menu,
-  X
+  X,
+  LayoutGrid,
+  UtensilsCrossed,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -20,6 +22,8 @@ const navItems = [
   { to: '/panel', label: 'Panel', icon: LayoutDashboard },
   { to: '/servicio', label: 'Servicio Dominical', icon: CalendarDays },
   { to: '/servidores', label: 'Servidores', icon: Users },
+  { to: '/salones', label: 'Salones', icon: LayoutGrid },
+  { to: '/cocina', label: 'Cocina', icon: UtensilsCrossed },
   { to: '/estadisticas', label: 'Estadísticas', icon: TrendingUp },
   { to: '/configuracion', label: 'Configuración', icon: Settings },
 ];

@@ -20,7 +20,7 @@ export const Login = () => {
     setError(null);
     setLoading(true);
 
-    const { data, error: loginError } = await login(email, password);
+    const { error: loginError } = await login(email, password);
 
     if (loginError) {
       setError(loginError.message || 'Error al iniciar sesión. Verifica tus datos.');

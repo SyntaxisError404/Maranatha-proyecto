@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '../services/supabaseClient';
-import { toast } from 'sonner';
 
 const AuthContext = createContext({
   session: null,

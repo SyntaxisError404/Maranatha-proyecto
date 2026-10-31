@@ -1,35 +1,69 @@
 import React from 'react';
-import { BarChart2, Calendar, Eye } from 'lucide-react';
+import { BarChart2, Calendar, Eye, Users } from 'lucide-react';
 import { toast } from 'sonner';
+import { formatFechaLarga, formatNumero } from '../utils/formatters';
 
 export const Estadisticas = () => {
-  const previousSundays = [
-    { id: 1, date: 'Domingo 08 de Junio 2026', attendance: 345 },
-    { id: 2, date: 'Domingo 01 de Junio 2026', attendance: 312 },
-    { id: 3, date: 'Domingo 25 de Mayo 2026', attendance: 328 },
+  // Datos de ejemplo de domingos anteriores (se sustituirán por datos de Supabase)
+  const domingosAnteriores = [
+    { id: 1, fecha: '2026-06-08', asistencia: 345 },
+    { id: 2, fecha: '2026-06-01', asistencia: 312 },
+    { id: 3, fecha: '2026-05-25', asistencia: 328 },
   ];
 
+  const promedio = Math.round(
+    domingosAnteriores.reduce((acc, d) => acc + d.asistencia, 0) /
+      (domingosAnteriores.length || 1)
+  );
+
   const handleVerReporte = () => {
-    toast.info('Funcionalidad en desarrollo');
+    toast.info('El reporte detallado estará disponible próximamente.');
   };
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <BarChart2 className="h-6 w-6 text-brand-primary" />
+          <h1 className="page-title">
+            <BarChart2 className="h-6 w-6 text-maranatha-blue" />
             Historial de Estadísticas
           </h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="page-subtitle">
             Consulta los registros de asistencia de domingos anteriores.
           </p>
         </div>
       </div>
 
-      {/* Content */}
-      <div className="maranatha-card overflow-hidden">
+      {/* Resumen */}
+      <div className="dashboard-stats-grid">
+        <div className="stat-card stat-card-dark">
+          <div className="stat-card-label">Promedio de Asistencia</div>
+          <div className="stat-card-value">{formatNumero(promedio)}</div>
+          <div className="stat-card-icon">
+            <Users style={{ width: '4rem', height: '4rem' }} />
+          </div>
+        </div>
+        <div className="stat-card stat-card-light">
+          <div className="stat-card-label">Domingos Registrados</div>
+          <div className="stat-card-value">{domingosAnteriores.length}</div>
+          <div className="stat-card-icon">
+            <Calendar style={{ width: '4rem', height: '4rem', color: '#1e40af' }} />
+          </div>
+        </div>
+        <div className="stat-card stat-card-gold">
+          <div className="stat-card-label">Último Domingo</div>
+          <div className="stat-card-value">
+            {formatNumero(domingosAnteriores[0]?.asistencia ?? 0)}
+          </div>
+          <div className="stat-card-icon">
+            <BarChart2 style={{ width: '4rem', height: '4rem' }} />
+          </div>
+        </div>
+      </div>
+
+      {/* Tabla */}
+      <div className="maranatha-card overflow-hidden" style={{ padding: 0 }}>
         <div className="overflow-x-auto">
           <table className="admin-table w-full">
             <thead>
@@ -40,26 +74,28 @@ export const Estadisticas = () => {
               </tr>
             </thead>
             <tbody>
-              {previousSundays.map((sunday) => (
-                <tr key={sunday.id}>
+              {domingosAnteriores.map((domingo) => (
+                <tr key={domingo.id}>
                   <td>
                     <div className="flex items-center gap-3">
-                      <div className="bg-brand-primary/20 p-2 rounded-lg">
-                        <Calendar className="h-5 w-5 text-brand-primary" />
+                      <div className="bg-blue-50 p-2 rounded-lg">
+                        <Calendar className="h-5 w-5 text-maranatha-blue" />
                       </div>
-                      <span className="font-medium text-white">{sunday.date}</span>
+                      <span className="font-medium text-slate-800">
+                        {formatFechaLarga(domingo.fecha)}
+                      </span>
                     </div>
                   </td>
                   <td className="text-center">
-                    <span className="text-gray-300 bg-white/5 px-3 py-1 rounded-full text-sm border border-white/10">
-                      {sunday.attendance} personas
+                    <span className="text-slate-600 bg-slate-100 px-3 py-1 rounded-full text-sm border border-slate-200">
+                      {formatNumero(domingo.asistencia)} personas
                     </span>
                   </td>
                   <td>
                     <div className="flex justify-end">
-                      <button 
+                      <button
                         onClick={handleVerReporte}
-                        className="px-3 py-1.5 text-sm bg-white/5 hover:bg-white/10 text-gray-300 hover:text-white rounded-lg inline-flex items-center gap-2 transition-colors border border-white/10"
+                        className="px-3 py-1.5 text-sm bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-lg inline-flex items-center gap-2 transition-colors border border-slate-200"
                       >
                         <Eye className="h-4 w-4" />
                         Ver Reporte

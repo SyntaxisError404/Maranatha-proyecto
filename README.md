@@ -1,90 +1,135 @@
-# Maranatha Kids - Portal de Control de Asistencia e Integración Escolar
+# Maranatha Kids — Portal de Control de Asistencia e Integración Escolar
 
-Este es el repositorio del sistema de gestión, control de asistencia e integración escolar para la **Iglesia Maranatha Venezuela**. La aplicación permite registrar la entrada de los niños a las distintas áreas de aprendizaje mediante escaneo de códigos QR y entrada manual, además de coordinar la logística de cocina y distribución de salones.
+Sistema de gestión, control de asistencia e integración escolar para la **Iglesia Maranatha Venezuela**. Permite registrar la entrada de los niños a las distintas áreas de aprendizaje mediante escaneo de códigos QR y entrada manual, coordinar la logística de cocina y la distribución de salones, y llevar estadísticas de asistencia por servicio.
+
+---
+
+## Stack Tecnológico
+
+- **Frontend:** React 19 + Vite 6
+- **Estilos:** TailwindCSS v4 (con tema de marca en `@theme`)
+- **Ruteo:** React Router (HashRouter, compatible con GitHub Pages)
+- **Backend / BD:** Supabase (PostgreSQL)
+- **Extras:** `framer-motion`, `lucide-react`, `html5-qrcode`, `sonner`
 
 ---
 
 ## Guía de Inicio Rápido
 
-El proyecto está estructurado con la base de datos (scripts SQL de Supabase) y la interfaz de usuario en React.
-
 ### Requisitos Previos
-* **Node.js** (v18 o superior)
-* **npm** o **yarn**
+- **Node.js** v18 o superior
+- **npm**
 
 ### Instalación y Ejecución del Frontend
-1. Ve al directorio del frontend:
-   ```bash
-   cd maranatha/frontend
-   ```
-2. Instala las dependencias:
-   ```bash
-   npm install
-   ```
-3. Configura tus variables de entorno duplicando el archivo `.env.example` como `.env` e ingresando tus credenciales de Supabase:
-   ```env
-   VITE_SUPABASE_URL=tu_supabase_url
-   VITE_SUPABASE_ANON_KEY=tu_supabase_anon_key
-   ```
-4. Ejecuta el servidor de desarrollo:
-   ```bash
-   npm run dev
-   ```
 
-*Nota: Si no posees las credenciales de Supabase configuradas, la aplicación mostrará una advertencia pero te permitirá usar el botón **"Acceso Rápido Demo (Offline)"** en la pantalla de inicio de sesión para explorar la interfaz con datos simulados.*
+```bash
+# Desde la raíz del repositorio
+cd frontend
+npm install
+```
 
----
+Configura las variables de entorno duplicando `.env.example` como `.env`:
 
-## Estructura del Proyecto y Guía de Modificación
+```env
+VITE_SUPABASE_URL=tu_supabase_url
+VITE_SUPABASE_ANON_KEY=tu_supabase_anon_key
+```
 
-Para asegurar un desarrollo organizado, a continuación se detallan los archivos del proyecto divididos por su nivel de criticidad.
+Ejecuta el servidor de desarrollo:
 
-### Archivos Críticos (NO Modificar sin Coordinación)
-Estos archivos contienen la lógica central de la aplicación (Autenticación, Enrutamiento, Estilos de Marca y Componentes UI Core). **Solo modifícalos si necesitas hacer cambios arquitectónicos profundos.**
+```bash
+npm run dev
+```
 
-| Archivo / Carpeta | Descripción | ¿Por qué es crítico? |
-| :--- | :--- | :--- |
-| [AuthContext.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/context/AuthContext.jsx) | Proveedor global de sesión. | Controla el login con Supabase y proporciona el mock del usuario para desarrollo offline. |
-| [ProtectedRoute.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/components/ProtectedRoute.jsx) | Guardián de rutas privadas. | Evita que usuarios no autenticados accedan a la aplicación. |
-| [supabaseClient.js](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/services/supabaseClient.js) | Cliente de Supabase. | Configura la conexión con la base de datos. Si se rompe, se cae la sincronización. |
-| [App.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/App.jsx) | Enrutador principal. | Define las rutas principales del sistema (`/login`, `/dashboard`). |
-| [index.css](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/index.css) | Estilos de TailwindCSS v4. | Configura los colores de marca corporativa (Azul Maranatha, Verde Kids, etc.) y clases de utilidad premium. |
-| [QrScanner.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/components/QrScanner.jsx) | Escáner QR de cámara. | Implementa la biblioteca `html5-qrcode` con visor y guías animadas optimizadas para móviles. |
-| [OfflineBanner.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/components/OfflineBanner.jsx) | Banner de estado de red. | Detecta si el dispositivo del coordinador pierde la conexión y lo maneja de forma elegante. |
-| `src/components/ui/` | [Button.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/components/ui/Button.jsx), [Input.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/components/ui/Input.jsx), [Skeleton.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/components/ui/Skeleton.jsx) | Componentes atómicos comunes. Consúmelos para mantener consistencia de diseño. |
+> **Modo demo / offline:** si no configuras las credenciales de Supabase, la app muestra una advertencia en consola pero sigue funcionando. Usa el botón **"Acceso Rápido Demo (Offline)"** en el login para explorar la interfaz con datos simulados. En este modo, el Servicio Dominical se guarda en el **almacenamiento local del navegador**.
+
+### Scripts disponibles (desde `frontend/`)
+
+| Script | Descripción |
+| :--- | :--- |
+| `npm run dev` | Servidor de desarrollo |
+| `npm run build` | Compila para producción en `dist/` |
+| `npm run preview` | Sirve el build de producción |
+| `npm run lint` | Ejecuta ESLint sobre el código |
+
+> También puedes usar los mismos scripts desde la raíz del repositorio (`npm run dev`, `npm run build`, etc.), que delegan al frontend.
 
 ---
 
-### Archivos en Desarrollo / Pendientes (COSAS POR TOCAR E IMPLEMENTAR)
-Estos archivos han sido pre-estructurados pero están actualmente vacíos o mockeados. **Son los archivos principales donde debes escribir tu código para avanzar el proyecto.**
+## Base de Datos (Supabase)
 
-#### 1. Backend / Base de Datos (Supabase SQL)
-En la carpeta [maranatha/database](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/database):
-* **[schema.sql](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/database/schema.sql)** `[VACÍO]`: Aquí debes escribir la estructura de tablas (`ninos`, `asistencia`, `aulas`, `roles_servidores`, etc.).
-* **[functions.sql](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/database/functions.sql)** `[VACÍO]`: triggers y funciones Postgres (ej. procedimiento automático para marcar egresos o actualizar estadísticas).
-* **[seed.sql](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/database/seed.sql)** `[VACÍO]`: Script de carga de datos iniciales para pruebas.
+Los scripts SQL están en la carpeta [`database/`](database). Ejecútalos en el **SQL Editor** de Supabase, **en este orden**:
 
-#### 2. Vistas y Componentes Frontend
-En la carpeta [maranatha/frontend/src](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src):
-* **[Layout.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/components/Layout.jsx)** `[VACÍO]`: Debe implementarse como el contenedor común (Sidebar/Navbar + Área de Contenido) que se comparta entre todas las páginas protegidas.
-* **[Dashboard.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/pages/Dashboard.jsx)** `[COMPLETO CON MOCK]`: Actualmente funciona en memoria. **Debe modificarse** para consumir datos reales de Supabase mediante los hooks.
-* **[Cocina.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/pages/Cocina.jsx)** `[VACÍO]`: Interfaz para la logística de preparación y entrega de raciones de comida/refrigerios a las distintas secciones.
-* **[Salones.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/pages/Salones.jsx)** `[VACÍO]`: Panel para ver la distribución en tiempo real de los niños según sus grupos pedagógicos (Semillitas, Alegres, Valientes) e interactuar con su ubicación.
-* **[Servidores.jsx](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/pages/Servidores.jsx)** `[VACÍO]`: Módulo para la gestión, registro de asistencia y roles del staff de apoyo en el servicio escolar.
+1. [`schema.sql`](database/schema.sql) — tablas, vistas, índices y Row Level Security.
+2. [`functions.sql`](database/functions.sql) — triggers (`updated_at`) y recálculo automático de totales.
+3. [`seed.sql`](database/seed.sql) — datos iniciales: salones y los servidores del ministerio.
 
-#### 3. Lógica y Utilidades (Hooks & Utils)
-* **[useAsistencia.js](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/hooks/useAsistencia.js)** `[VACÍO]`: Hook personalizado para manejar suscripciones a cambios en la tabla de asistencia en tiempo real, mutaciones e inserciones.
-* **[useLogistica.js](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/hooks/useLogistica.js)** `[VACÍO]`: Hook para la gestión de cocina, inventario de meriendas y asignación de salones.
-* **[formatters.js](file:///c:/Users/Uriel/Desktop/maranatha/maranatha/frontend/src/utils/formatters.js)** `[VACÍO]`: Funciones formateadoras reutilizables (ej. formatear RUT/Cédulas, fechas, horas de entrada).
+Tablas principales: `servidores`, `salones`, `servicios`, `servicio_detalles` (snapshot JSON), `conteo_ninos`, `asistencia_servidores`.
 
 ---
 
-## Guía de Diseño y UI Premium
+## Estructura del Proyecto
 
-Para mantener la consistencia estética:
-1. **Evita colores genéricos:** Utiliza las clases y variables predefinidas en el `@theme` de CSS.
-   * `var(--color-maranatha-blue)` o clase `bg-maranatha-blue` (Azul oficial)
-   * `var(--color-kids-green)` o clase `bg-kids-green` (Verde alegre)
-   * `bg-slate-50`, `bg-white`, `border-slate-150` para estructuras limpias.
-2. **Utiliza los componentes de `components/ui/`:** No uses inputs o botones planos; el botón de la UI ya cuenta con micro-animaciones en hover/active y estado de carga (`loading`).
-3. **Mantén el enfoque Mobile-First:** Recuerda que la asistencia se escaneará mayormente con teléfonos móviles de los coordinadores.
+```
+frontend/src/
+├── components/
+│   ├── ui/                 → Button, Input, Skeleton (átomos reutilizables)
+│   ├── AsistenciaSeccion.jsx
+│   ├── AsistenciaLogistica.jsx
+│   ├── EstadisticasServicio.jsx
+│   ├── Layout.jsx          → Sidebar + topbar (contenedor de rutas protegidas)
+│   ├── ProtectedRoute.jsx
+│   ├── OfflineBanner.jsx
+│   └── QrScanner.jsx
+├── context/AuthContext.jsx → sesión Supabase + usuario demo
+├── hooks/
+│   ├── useAsistencia.js     → estado del servicio + persistencia + guardado
+│   ├── useLogistica.js      → cálculo de raciones de cocina
+│   └── useDebounce.js
+├── pages/
+│   ├── Dashboard.jsx        → panel de inicio (accesos rápidos)
+│   ├── ServicioDominical.jsx→ registro de asistencia y conteo
+│   ├── Servidores.jsx       → CRUD de voluntarios
+│   ├── Salones.jsx          → distribución de niños por salón
+│   ├── Cocina.jsx           → raciones de meriendas por sección
+│   ├── Estadisticas.jsx     → historial de domingos
+│   ├── Configuracion.jsx
+│   └── Login.jsx
+├── services/supabaseClient.js
+├── utils/formatters.js      → fechas, nombres, cédulas, números
+├── data/mockData.js         → servidores y salones de ejemplo
+└── index.css                → tema de marca (@theme) + estilos
+```
+
+### Rutas de la aplicación
+
+| Ruta | Página |
+| :--- | :--- |
+| `/login` | Inicio de sesión |
+| `/panel` | Dashboard |
+| `/servicio` | Servicio Dominical (registro) |
+| `/servidores` | Gestión de servidores |
+| `/salones` | Distribución de salones |
+| `/cocina` | Cocina y logística |
+| `/estadisticas` | Historial de estadísticas |
+| `/configuracion` | Configuración |
+
+---
+
+## Guía de Diseño y UI
+
+Para mantener la consistencia estética (todo el sistema usa un **tema claro**):
+
+1. **Usa las variables y utilidades de marca** definidas en el `@theme` de [`index.css`](frontend/src/index.css):
+   - `var(--color-maranatha-blue)` / clase `bg-maranatha-blue` / `text-maranatha-blue` (azul oficial)
+   - `var(--color-kids-green)` / clase `bg-kids-green` (verde)
+   - `bg-slate-50`, `bg-white`, `border-slate-200` para estructuras limpias.
+   - **Evita** clases de tema oscuro (`text-white`, `text-gray-300/400`) sobre tarjetas blancas.
+2. **Reutiliza las clases de componentes** ya definidas: `.maranatha-card`, `.maranatha-btn-primary`, `.maranatha-input`, `.admin-table`, `.page-header`, `.page-title`, `.stat-card`.
+3. **Enfoque Mobile-First:** la asistencia se registra mayormente desde teléfonos de los coordinadores.
+
+---
+
+## Despliegue
+
+El workflow [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) publica automáticamente en **GitHub Pages** al hacer push a `main`/`master`. Define los *secrets* `VITE_SUPABASE_URL` y `VITE_SUPABASE_ANON_KEY` en la configuración del repositorio para que el build de producción se conecte a Supabase.

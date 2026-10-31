@@ -9,6 +9,8 @@ import { Servidores } from "./pages/Servidores";
 import { ServicioDominical } from "./pages/ServicioDominical";
 import { Estadisticas } from "./pages/Estadisticas";
 import { Configuracion } from './pages/Configuracion';
+import { Salones } from './pages/Salones';
+import { Cocina } from './pages/Cocina';
 import { OfflineBanner } from './components/OfflineBanner';
 
 export default function App() {
@@ -46,6 +48,26 @@ export default function App() {
               <ProtectedRoute>
                 <Layout>
                   <ServicioDominical />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/salones"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Salones />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/cocina"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Cocina />
                 </Layout>
               </ProtectedRoute>
             }

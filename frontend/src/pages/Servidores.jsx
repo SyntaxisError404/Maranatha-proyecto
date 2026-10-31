@@ -1,10 +1,52 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { 
-  Search, Plus, Edit2, Trash2, X, UserCog, Filter, Shield 
+import {
+  Search, Plus, Edit2, Trash2, X, UserCog, Filter, Shield, Users as UsersIcon,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { mockServidores } from '../data/mockData';
+import { getIniciales, formatNombre } from '../utils/formatters';
+
+const GRUPOS = [
+  'Todos',
+  'Maternal',
+  'Infantil',
+  'Prejuvenil',
+  'Logística Operativa',
+  'Almacén',
+  'Secretaría',
+  'Distribución Alimentos',
+];
+
+const FUNCIONES = [
+  'Capitán',
+  'Capitán Área',
+  'Mano Derecha',
+  'Servidor',
+  'Encargado',
+  'Líder',
+  'Asistente',
+];
+
+// Colores de badge por grupo (tema claro)
+const GROUP_COLORS = {
+  'Maternal': 'bg-pink-50 text-pink-700 border-pink-200',
+  'Infantil': 'bg-purple-50 text-purple-700 border-purple-200',
+  'Prejuvenil': 'bg-indigo-50 text-indigo-700 border-indigo-200',
+  'Logística Operativa': 'bg-blue-50 text-blue-700 border-blue-200',
+  'Almacén': 'bg-amber-50 text-amber-700 border-amber-200',
+  'Secretaría': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+  'Distribución Alimentos': 'bg-orange-50 text-orange-700 border-orange-200',
+};
+
+const getGroupColor = (grupo) =>
+  GROUP_COLORS[grupo] || 'bg-slate-100 text-slate-600 border-slate-200';
+
+const getRoleColor = (role) => {
+  if (/capit|líder|lider/i.test(role)) return 'text-amber-600';
+  if (/mano derecha/i.test(role)) return 'text-blue-600';
+  return 'text-slate-500';
+};
 
 export const Servidores = () => {
   const [servidores, setServidores] = useState(mockServidores || []);
@@ -15,44 +57,20 @@ export const Servidores = () => {
   const [formData, setFormData] = useState({
     nombre: '',
     grupo: 'Maternal',
-    funcion: 'Servidor'
+    funcion: 'Servidor',
   });
-
-  const grupos = [
-    'Todos',
-    'Maternal',
-    'Infantil',
-    'Prejuvenil',
-    'Logística Operativa',
-    'Almacén',
-    'Secretaría',
-    'Distribución Alimentos'
-  ];
-
-  const funciones = [
-    'Capitán',
-    'Mano Derecha',
-    'Servidor',
-    'Encargado',
-    'Líder',
-    'Asistente'
-  ];
 
   const handleOpenModal = (servidor = null) => {
     if (servidor) {
       setCurrentServidor(servidor);
       setFormData({
-        nombre: servidor.nombre || servidor.name || '',
-        grupo: servidor.grupo || servidor.group || 'Maternal',
-        funcion: servidor.funcion || servidor.role || 'Servidor'
+        nombre: servidor.nombre || '',
+        grupo: servidor.grupo || 'Maternal',
+        funcion: servidor.funcion || servidor.funcionDefault || 'Servidor',
       });
     } else {
       setCurrentServidor(null);
-      setFormData({
-        nombre: '',
-        grupo: 'Maternal',
-        funcion: 'Servidor'
-      });
+      setFormData({ nombre: '', grupo: 'Maternal', funcion: 'Servidor' });
     }
     setIsModalOpen(true);
   };
@@ -64,7 +82,7 @@ export const Servidores = () => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = (e) => {
@@ -74,14 +92,18 @@ export const Servidores = () => {
       return;
     }
 
+    const limpio = { ...formData, nombre: formatNombre(formData.nombre) };
+
     if (currentServidor) {
-      setServidores(servidores.map(s => 
-        s.id === currentServidor.id ? { ...s, ...formData } : s
-      ));
+      setServidores((prev) =>
+        prev.map((s) => (s.id === currentServidor.id ? { ...s, ...limpio } : s))
+      );
       toast.success('Servidor actualizado correctamente');
     } else {
-      const newId = servidores.length > 0 ? Math.max(...servidores.map(s => s.id || 0)) + 1 : 1;
-      setServidores([...servidores, { id: newId, ...formData }]);
+      const newId = String(
+        servidores.reduce((max, s) => Math.max(max, Number(s.id) || 0), 0) + 1
+      );
+      setServidores((prev) => [...prev, { id: newId, funcionDefault: limpio.funcion, ...limpio }]);
       toast.success('Servidor agregado correctamente');
     }
     handleCloseModal();
@@ -89,102 +111,88 @@ export const Servidores = () => {
 
   const handleDelete = (id) => {
     if (window.confirm('¿Está seguro de eliminar este servidor?')) {
-      setServidores(servidores.filter(s => s.id !== id));
+      setServidores((prev) => prev.filter((s) => s.id !== id));
       toast.success('Servidor eliminado correctamente');
     }
   };
 
-  const normalizedServidores = servidores.map(s => ({
-    ...s,
-    nombre: s.nombre || s.name || '',
-    grupo: s.grupo || s.group || '',
-    funcion: s.funcion || s.role || ''
-  }));
+  const normalizados = useMemo(
+    () =>
+      servidores.map((s) => ({
+        ...s,
+        nombre: s.nombre || '',
+        grupo: s.grupo || '',
+        funcion: s.funcion || s.funcionDefault || 'Servidor',
+      })),
+    [servidores]
+  );
 
-  const filteredServidores = normalizedServidores.filter(servidor => {
-    const matchesSearch = servidor.nombre.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesGroup = groupFilter === 'Todos' || servidor.grupo === groupFilter;
-    return matchesSearch && matchesGroup;
-  });
-
-  const getInitials = (name) => {
-    if (!name) return '??';
-    const parts = name.split(' ');
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
-  };
-
-  const getGroupColor = (grupo) => {
-    const colors = {
-      'Maternal': 'bg-pink-500/20 text-pink-500 border-pink-500/30',
-      'Infantil': 'bg-purple-500/20 text-purple-500 border-purple-500/30',
-      'Prejuvenil': 'bg-indigo-500/20 text-indigo-500 border-indigo-500/30',
-      'Logística Operativa': 'bg-blue-500/20 text-blue-500 border-blue-500/30',
-      'Almacén': 'bg-amber-500/20 text-amber-500 border-amber-500/30',
-      'Secretaría': 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30',
-      'Distribución Alimentos': 'bg-orange-500/20 text-orange-500 border-orange-500/30'
-    };
-    return colors[grupo] || 'bg-gray-500/20 text-gray-400 border-gray-500/30';
-  };
-
-  const getRoleColor = (role) => {
-    if (role === 'Capitán' || role === 'Líder') return 'text-amber-400';
-    if (role === 'Mano Derecha') return 'text-blue-400';
-    return 'text-gray-400';
-  };
+  const filtrados = useMemo(() => {
+    const term = searchTerm.toLowerCase().trim();
+    return normalizados.filter((s) => {
+      const matchSearch = s.nombre.toLowerCase().includes(term);
+      const matchGroup = groupFilter === 'Todos' || s.grupo === groupFilter;
+      return matchSearch && matchGroup;
+    });
+  }, [normalizados, searchTerm, groupFilter]);
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+      <div className="page-header">
         <div>
-          <h1 className="text-2xl font-bold text-white flex items-center gap-2">
-            <UserCog className="h-6 w-6 text-brand-primary" />
+          <h1 className="page-title">
+            <UserCog className="h-6 w-6 text-maranatha-blue" />
             Gestión de Servidores
           </h1>
-          <p className="text-gray-400 text-sm mt-1">
+          <p className="page-subtitle">
             Administra el registro de voluntarios por grupo y función.
           </p>
         </div>
-        <button 
+        <button
           onClick={() => handleOpenModal()}
-          className="maranatha-btn-primary flex items-center gap-2"
+          className="maranatha-btn-primary"
         >
           <Plus className="h-4 w-4" />
           AGREGAR SERVIDOR
         </button>
       </div>
 
-      {/* Filters */}
-      <div className="maranatha-card p-4 flex flex-col sm:flex-row gap-4">
+      {/* Filtros */}
+      <div className="maranatha-card flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-gray-400" />
-          <input 
-            type="text" 
-            placeholder="Buscar Nombre..." 
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar nombre..."
             className="maranatha-input w-full pl-10"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-        <div className="flex items-center gap-2 sm:w-64">
-          <Filter className="h-5 w-5 text-gray-400" />
-          <select 
+        <div className="flex items-center gap-2 sm:w-72">
+          <Filter className="h-5 w-5 text-slate-400 shrink-0" />
+          <select
             className="maranatha-select w-full"
             value={groupFilter}
             onChange={(e) => setGroupFilter(e.target.value)}
           >
-            {grupos.map(g => (
+            {GRUPOS.map((g) => (
               <option key={g} value={g}>{g}</option>
             ))}
           </select>
         </div>
       </div>
 
-      {/* Table */}
-      <div className="maranatha-card overflow-hidden">
+      {/* Contador */}
+      <p className="text-sm text-slate-500 font-medium flex items-center gap-2">
+        <UsersIcon className="h-4 w-4" />
+        {filtrados.length} servidor{filtrados.length === 1 ? '' : 'es'}
+        {groupFilter !== 'Todos' && ` en ${groupFilter}`}
+      </p>
+
+      {/* Tabla */}
+      <div className="maranatha-card overflow-hidden" style={{ padding: 0 }}>
         <div className="overflow-x-auto">
           <table className="admin-table">
             <thead>
@@ -196,9 +204,9 @@ export const Servidores = () => {
               </tr>
             </thead>
             <tbody>
-              {filteredServidores.length > 0 ? (
-                filteredServidores.map((servidor) => (
-                  <motion.tr 
+              {filtrados.length > 0 ? (
+                filtrados.map((servidor) => (
+                  <motion.tr
                     key={servidor.id}
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
@@ -207,34 +215,38 @@ export const Servidores = () => {
                     <td>
                       <div className="flex items-center gap-3">
                         <div className="member-avatar">
-                          {getInitials(servidor.nombre)}
+                          {getIniciales(servidor.nombre)}
                         </div>
-                        <div className="font-medium text-white">{servidor.nombre}</div>
+                        <div className="font-medium text-slate-800">
+                          {servidor.nombre}
+                        </div>
                       </div>
                     </td>
                     <td>
-                      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getGroupColor(servidor.grupo)}`}>
+                      <span
+                        className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getGroupColor(servidor.grupo)}`}
+                      >
                         {servidor.grupo}
                       </span>
                     </td>
                     <td>
                       <div className="flex items-center gap-2">
                         <Shield className={`h-4 w-4 ${getRoleColor(servidor.funcion)}`} />
-                        <span className="text-gray-300">{servidor.funcion}</span>
+                        <span className="text-slate-600">{servidor.funcion}</span>
                       </div>
                     </td>
                     <td>
-                      <div className="flex justify-end gap-2">
-                        <button 
+                      <div className="flex justify-end gap-1">
+                        <button
                           onClick={() => handleOpenModal(servidor)}
-                          className="p-2 text-gray-400 hover:text-brand-secondary transition-colors rounded-lg hover:bg-white/5"
+                          className="action-btn"
                           title="Editar"
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
-                        <button 
+                        <button
                           onClick={() => handleDelete(servidor.id)}
-                          className="p-2 text-gray-400 hover:text-red-400 transition-colors rounded-lg hover:bg-white/5"
+                          className="action-btn hover:!text-red-500"
                           title="Eliminar"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -245,7 +257,7 @@ export const Servidores = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="text-center py-8 text-gray-400">
+                  <td colSpan="4" className="text-center py-8 text-slate-400">
                     No se encontraron servidores.
                   </td>
                 </tr>
@@ -258,27 +270,29 @@ export const Servidores = () => {
       {/* Modal */}
       <AnimatePresence>
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+          <div className="modal-overlay" onClick={handleCloseModal}>
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="maranatha-card w-full max-w-md p-6 relative border-brand-primary/20 border"
+              className="modal-content relative"
+              onClick={(e) => e.stopPropagation()}
             >
-              <button 
+              <button
                 onClick={handleCloseModal}
-                className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors"
+                className="action-btn absolute top-4 right-4"
+                aria-label="Cerrar"
               >
                 <X className="h-5 w-5" />
               </button>
 
-              <h2 className="text-xl font-bold text-white mb-6">
+              <h2 className="text-xl font-bold text-slate-800 mb-6">
                 {currentServidor ? 'Editar Servidor' : 'Nuevo Servidor'}
               </h2>
 
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-semibold text-slate-600 mb-1.5">
                     Nombre
                   </label>
                   <input
@@ -293,7 +307,7 @@ export const Servidores = () => {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-semibold text-slate-600 mb-1.5">
                     Grupo
                   </label>
                   <select
@@ -302,14 +316,14 @@ export const Servidores = () => {
                     onChange={handleChange}
                     className="maranatha-select w-full"
                   >
-                    {grupos.filter(g => g !== 'Todos').map(g => (
+                    {GRUPOS.filter((g) => g !== 'Todos').map((g) => (
                       <option key={g} value={g}>{g}</option>
                     ))}
                   </select>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                  <label className="block text-sm font-semibold text-slate-600 mb-1.5">
                     Función
                   </label>
                   <select
@@ -318,7 +332,7 @@ export const Servidores = () => {
                     onChange={handleChange}
                     className="maranatha-select w-full"
                   >
-                    {funciones.map(f => (
+                    {FUNCIONES.map((f) => (
                       <option key={f} value={f}>{f}</option>
                     ))}
                   </select>
@@ -328,14 +342,11 @@ export const Servidores = () => {
                   <button
                     type="button"
                     onClick={handleCloseModal}
-                    className="flex-1 px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors border border-gray-700"
+                    className="flex-1 px-4 py-2.5 bg-slate-100 text-slate-700 rounded-xl hover:bg-slate-200 transition-colors font-semibold text-sm"
                   >
                     Cancelar
                   </button>
-                  <button
-                    type="submit"
-                    className="flex-1 maranatha-btn-primary"
-                  >
+                  <button type="submit" className="flex-1 maranatha-btn-primary">
                     {currentServidor ? 'Guardar Cambios' : 'Agregar'}
                   </button>
                 </div>
