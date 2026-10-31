@@ -14,6 +14,7 @@ const Estadisticas = lazy(() => import('./pages/Estadisticas').then((m) => ({ de
 const Configuracion = lazy(() => import('./pages/Configuracion').then((m) => ({ default: m.Configuracion })));
 const Salones = lazy(() => import('./pages/Salones').then((m) => ({ default: m.Salones })));
 const Cocina = lazy(() => import('./pages/Cocina').then((m) => ({ default: m.Cocina })));
+const Checkin = lazy(() => import('./pages/Checkin').then((m) => ({ default: m.Checkin })));
 
 const PageLoader = () => (
   <div className="flex h-[60vh] w-full items-center justify-center">
@@ -52,6 +53,7 @@ export default function App() {
           <Route path="/panel" element={<Protected><Dashboard /></Protected>} />
           <Route path="/servidores" element={<Protected><Servidores /></Protected>} />
           <Route path="/servicio" element={<Protected><ServicioDominical /></Protected>} />
+          <Route path="/checkin" element={<Protected><Checkin /></Protected>} />
           <Route path="/salones" element={<Protected><Salones /></Protected>} />
           <Route path="/cocina" element={<Protected><Cocina /></Protected>} />
           <Route path="/estadisticas" element={<Protected><Estadisticas /></Protected>} />

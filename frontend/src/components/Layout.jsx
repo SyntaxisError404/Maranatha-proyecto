@@ -15,12 +15,14 @@ import {
   X,
   LayoutGrid,
   UtensilsCrossed,
+  QrCode,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
 const navItems = [
   { to: '/panel', label: 'Panel', icon: LayoutDashboard },
   { to: '/servicio', label: 'Servicio Dominical', icon: CalendarDays },
+  { to: '/checkin', label: 'Check-in QR', icon: QrCode },
   { to: '/servidores', label: 'Servidores', icon: Users },
   { to: '/salones', label: 'Salones', icon: LayoutGrid },
   { to: '/cocina', label: 'Cocina', icon: UtensilsCrossed },

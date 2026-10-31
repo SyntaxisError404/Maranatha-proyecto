@@ -11,6 +11,7 @@ import {
   ClipboardList,
   Activity,
   Baby,
+  QrCode,
 } from 'lucide-react';
 import { mockServidores, salonesConfig } from '../data/mockData';
 import { formatFechaLarga, formatNumero } from '../utils/formatters';
@@ -23,6 +24,14 @@ const accesos = [
     icon: ClipboardList,
     bg: '#dbeafe',
     color: '#1e40af',
+  },
+  {
+    to: '/checkin',
+    titulo: 'Check-in QR',
+    descripcion: 'Registrar llegada de servidores por QR',
+    icon: QrCode,
+    bg: '#e0e7ff',
+    color: '#4338ca',
   },
   {
     to: '/servidores',
