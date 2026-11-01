@@ -856,3 +856,23 @@ h1, h2, h3, h4, h5, h6 {
 ::-webkit-scrollbar-thumb:hover {
   background: #94a3b8;
 }
+
+/* ===== IMPRESIÓN (solo el reporte) ===== */
+@media print {
+  body { background: #ffffff; }
+  .sidebar, .topbar, .sidebar-overlay, .offline-banner, .no-print { display: none !important; }
+  .main-content { margin-left: 0 !important; }
+  .page-content { padding: 0 !important; }
+  /* Aísla el reporte: oculta todo y muestra solo el reporte */
+  body * { visibility: hidden; }
+  .reporte-servicio, .reporte-servicio * { visibility: visible; }
+  .reporte-servicio {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+}

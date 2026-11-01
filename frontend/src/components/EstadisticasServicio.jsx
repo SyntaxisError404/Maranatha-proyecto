@@ -149,8 +149,8 @@ export const EstadisticasServicio = ({ fecha, estado }) => {
   const totals = calcGlobal();
 
   return (
-    <div className="maranatha-card" style={{ padding: '2rem' }}>
-      
+    <div className="maranatha-card reporte-servicio" style={{ padding: '2rem' }}>
+
       {/* Encabezado del Reporte */}
       <div style={{ textAlign: 'center', marginBottom: '2rem', borderBottom: '2px solid #0f172a', paddingBottom: '1rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0a4693', margin: 0, textTransform: 'uppercase' }}>
@@ -258,9 +258,9 @@ export const EstadisticasServicio = ({ fecha, estado }) => {
       </div>
       
       {/* Botón para Imprimir */}
-      <div style={{ marginTop: '3rem', textAlign: 'center' }}>
-        <button 
-          className="maranatha-btn-gold" 
+      <div className="no-print" style={{ marginTop: '3rem', textAlign: 'center' }}>
+        <button
+          className="maranatha-btn-gold"
           onClick={() => window.print()}
           style={{ padding: '0.75rem 2rem', fontSize: '1rem' }}
         >

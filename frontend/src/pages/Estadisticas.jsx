@@ -1,14 +1,16 @@
 import React, { useEffect, useState } from 'react';
-import { BarChart2, Calendar, Eye, Users, HardDrive } from 'lucide-react';
+import { BarChart2, Calendar, Eye, Users, HardDrive, X, FileText } from 'lucide-react';
 import { toast } from 'sonner';
 import { formatFechaLarga, formatNumero } from '../utils/formatters';
 import { serviciosService } from '../services/serviciosService';
 import { SkeletonTable } from '../components/ui/Skeleton';
+import { EstadisticasServicio } from '../components/EstadisticasServicio';
 
 export const Estadisticas = () => {
   const [domingosAnteriores, setDomingosAnteriores] = useState([]);
   const [loading, setLoading] = useState(true);
   const [demo, setDemo] = useState(false);
+  const [reporte, setReporte] = useState(null); // { fecha, estado } | { fecha, sinDetalle } | 'loading'
 
   useEffect(() => {
     let activo = true;
@@ -34,9 +36,23 @@ export const Estadisticas = () => {
       (domingosAnteriores.length || 1)
   );
 
-  const handleVerReporte = () => {
-    toast.info('El reporte detallado estará disponible próximamente.');
+  const verReporte = async (row) => {
+    setReporte('loading');
+    try {
+      const estado = await serviciosService.fetchDetalle(row);
+      if (estado) {
+        setReporte({ fecha: row.fecha, estado });
+      } else {
+        setReporte({ fecha: row.fecha, sinDetalle: true, asistencia: row.asistencia });
+      }
+    } catch (e) {
+      console.error('Error al cargar el reporte:', e);
+      toast.error('No se pudo cargar el reporte.');
+      setReporte(null);
+    }
   };
+
+  const cerrarReporte = () => setReporte(null);
 
   return (
     <div className="space-y-6">
@@ -124,7 +140,7 @@ export const Estadisticas = () => {
                   <td>
                     <div className="flex justify-end">
                       <button
-                        onClick={handleVerReporte}
+                        onClick={() => verReporte(domingo)}
                         className="px-3 py-1.5 text-sm bg-slate-50 hover:bg-slate-100 text-slate-600 hover:text-slate-800 rounded-lg inline-flex items-center gap-2 transition-colors border border-slate-200"
                       >
                         <Eye className="h-4 w-4" />
@@ -138,6 +154,70 @@ export const Estadisticas = () => {
           </table>
         </div>
       </div>
+      )}
+
+      {/* Modal de Reporte Detallado */}
+      {reporte && (
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center p-4 overflow-y-auto"
+          style={{ background: 'rgba(15,23,42,0.55)', backdropFilter: 'blur(4px)' }}
+          onClick={cerrarReporte}
+        >
+          <div
+            className="w-full max-w-5xl my-8"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* Barra superior del modal (no se imprime) */}
+            <div className="no-print flex items-center justify-between mb-3">
+              <h2 className="text-white font-bold text-lg flex items-center gap-2">
+                <FileText className="h-5 w-5" />
+                Reporte del servicio
+                {reporte !== 'loading' && reporte.fecha && (
+                  <span className="font-normal text-slate-300 text-sm">
+                    · {formatFechaLarga(reporte.fecha)}
+                  </span>
+                )}
+              </h2>
+              <button
+                onClick={cerrarReporte}
+                className="text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-lg p-2 transition-colors"
+                aria-label="Cerrar"
+              >
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+
+            {reporte === 'loading' && (
+              <div className="maranatha-card flex items-center justify-center py-16">
+                <div className="h-10 w-10 animate-spin rounded-full border-4 border-maranatha-blue border-t-transparent" />
+              </div>
+            )}
+
+            {reporte !== 'loading' && reporte.estado && (
+              <EstadisticasServicio
+                fecha={reporte.fecha}
+                estado={{ ...reporte.estado, setOtrasAreas: () => {} }}
+              />
+            )}
+
+            {reporte !== 'loading' && reporte.sinDetalle && (
+              <div className="maranatha-card text-center py-12">
+                <FileText className="h-10 w-10 mx-auto mb-3 text-slate-300" />
+                <h3 className="text-lg font-bold text-slate-800 mb-1">
+                  {formatFechaLarga(reporte.fecha)}
+                </h3>
+                <p className="text-slate-500 mb-4">
+                  Asistencia registrada: <strong>{formatNumero(reporte.asistencia)} personas</strong>
+                </p>
+                <p className="text-sm text-slate-400 max-w-md mx-auto">
+                  Este registro no tiene el desglose detallado guardado. El reporte
+                  completo está disponible para los servicios registrados desde la
+                  app en «Servicio Dominical».
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </div>
   );
