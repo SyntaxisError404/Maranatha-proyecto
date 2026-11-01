@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { getIniciales, formatNombre } from '../utils/formatters';
 import { useServidores } from '../hooks/useServidores';
 import { SkeletonTable } from '../components/ui/Skeleton';
+import { getPreferencias } from '../services/preferencias';
 
 const GRUPOS = [
   'Todos',
@@ -111,7 +112,7 @@ export const Servidores = () => {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('¿Está seguro de eliminar este servidor?')) return;
+    if (getPreferencias().confirmarEliminar && !window.confirm('¿Está seguro de eliminar este servidor?')) return;
     const res = await remove(id);
     if (res.ok) toast.success('Servidor eliminado correctamente');
     else toast.error('No se pudo eliminar. Intenta de nuevo.');

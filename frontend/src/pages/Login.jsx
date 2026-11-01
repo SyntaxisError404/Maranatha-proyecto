@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { LogIn, Sparkles, AlertCircle, Heart } from 'lucide-react';
+import { getPreferencias } from '../services/preferencias';
 
 export const Login = () => {
   const { login, setMockUser } = useAuth();
@@ -147,7 +148,7 @@ export const Login = () => {
 
           {/* Footer del Formulario */}
           <p className="text-center text-xs text-slate-400 mt-6 font-medium">
-            Iglesia Maranatha Venezuela &copy; {new Date().getFullYear()}
+            {getPreferencias().congregacion} &copy; {new Date().getFullYear()}
           </p>
         </div>
       </div>

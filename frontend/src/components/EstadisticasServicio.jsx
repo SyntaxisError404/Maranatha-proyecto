@@ -1,7 +1,9 @@
 import React from 'react';
 import { salonesConfig, otrasAreasConfig } from '../data/mockData';
+import { getPreferencias } from '../services/preferencias';
 
 export const EstadisticasServicio = ({ fecha, estado }) => {
+  const { congregacion } = getPreferencias();
   const {
     asistenciaMaternal, conteoMaternal, lideresMaternal,
     asistenciaInfantil, conteoInfantil, lideresInfantil,
@@ -152,7 +154,7 @@ export const EstadisticasServicio = ({ fecha, estado }) => {
       {/* Encabezado del Reporte */}
       <div style={{ textAlign: 'center', marginBottom: '2rem', borderBottom: '2px solid #0f172a', paddingBottom: '1rem' }}>
         <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: '#0a4693', margin: 0, textTransform: 'uppercase' }}>
-          IGLESIA CRISTIANA DE AVIVAMIENTO MARANATHA VENEZUELA
+          {congregacion}
         </h1>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '1rem' }}>
           <div style={{ fontWeight: 700, color: '#1e293b' }}>ESTADÍSTICAS DOMINGO FECHA: <span style={{ textDecoration: 'underline' }}>{fecha}</span></div>
